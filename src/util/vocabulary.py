@@ -75,7 +75,6 @@ class Vocabulary():
             return [[self.word2id[word] for word in sent] for sent in sent_arr]
 
     def save(self, filename):
-        # with codecs.open(filename, 'w', encoding="utf-8") as fp:
         print("save_size:{}".format(self.__size))
         with codecs.open(filename, 'w',encoding="utf-8") as fp:
             print(self.__size, file=fp)
@@ -84,7 +83,6 @@ class Vocabulary():
 
     @staticmethod
     def load(filename):
-        # with codecs.open(filename, "r", encoding="utf-8") as fp:
         with codecs.open(filename, "r",encoding="utf-8") as fp:
             self = Vocabulary()
             self.__size = int(next(fp))

@@ -1,6 +1,8 @@
 import pandas,os,codecs,subprocess
 from util.vocabulary import vocabularize
 
+bgm_feature_dim=54
+text_split_unit=10
 
 def loadSiamTest():
     bgm_file = "test_bgm/bgmfeature_test_norm.csv"
@@ -21,9 +23,6 @@ def loadTest(txtfile,vocab):
                 fr.append(line)
             else:fr+=[l_e+'。' for l_e in line.split('。') if len(l_e)>3]
         else:fr+=[l_e+'。' for l_e in line.split('。') if len(l_e)>3]
-    print("frlen",len(fr))
     text_list,vocab = vocabularize([fr],vocab=vocab)
-    print("text",text_list[0][0])
-    print("text",[len(text) for text in text_list[0]])
-    json_list=[(lines,[0]*54,[""]) for lines in zip(*[iter(text_list[0])]*10)]
+    json_list=[(lines,[0]*bgm_feature_dim,[""]) for lines in zip(*[iter(text_list[0])]*text_split_unit)]
     return json_list

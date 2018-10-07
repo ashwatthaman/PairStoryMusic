@@ -73,10 +73,11 @@ def sampleTest(txtfile):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument("--train",
-                        help="train mode",
-                        action="store_true")
+    parser.add_argument("-i","--input",
+                        help="input file",
+                        default="./test_bgm/meros.txt"
+                        )
     args = parser.parse_args()
     # if args.train:
     # sampleTrain()
-    sampleTest("./test_bgm/meros.txt")
+    sampleTest(args.input)

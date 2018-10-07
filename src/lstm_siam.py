@@ -146,12 +146,9 @@ class LSTMSiam(NNChainer):
 
     def test(self,tupl_x):
         x_txt = self.extractText(tupl_x)
-
         # for ti,txt_e in enumerate(x_txt):
         #     print(txt_e)
-
         len_test = len(self.testbgmfeature)
-
         x_bgmf = [vec for _ in range(len(x_txt)) for key,vec in self.testbgmfeature.items()]
         x_bgmn = [key for _ in range(len(x_txt)) for key,vec in self.testbgmfeature.items()]
         x_txt = [t_e[:]  for t_e in x_txt for _ in range(len_test)]

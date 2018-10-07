@@ -273,5 +273,4 @@ if __name__=="__main__":
     path_list = ["./test_bgm/"]
     [extract_feature(p_e) for p_e in path_list]
     normalizeFeature()
-    # normalizeConcat()
     # getNormBase()
