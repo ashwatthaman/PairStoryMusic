@@ -65,8 +65,9 @@ def sampleTest(txtfile):
     fw = codecs.open(CDIR+"./test_bgm/test_result.csv","w")
     # model.batchsize = 3
     # batchsize = 3
+    fw.write("テキスト,適合度,-,-,音楽名\n")
     for bi,batch in enumerate(model.getBatchGen(args)):
-        line_list=model.test(batch[0])
+        line_list = model.test(batch[0])
         [fw.write(line) for line in line_list]
         if bi==30:break
     fw.close()
