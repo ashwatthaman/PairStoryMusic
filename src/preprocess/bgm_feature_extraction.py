@@ -76,9 +76,11 @@ def extract_feature(path):
     
     
     # Traversing over each file in path
-    file_data = [f for f in listdir(path) if isfile (join(path, f)) and (".mp3" in f or ".ogg" in f)]
+    # file_data = [f for f in listdir(path) if isfile (join(path, f)) and ".sli" not in f and f[0]!="."]
+    file_data = [f for f in listdir(path) if isfile (join(path, f)) and (".mp3" in f or ".ogg" in f) and ".sli" not in f]
     print("file_data " , file_data)
     for line in file_data:
+
         if ( line[-1:] == '\n' ):
             line = line[:-1]
 
@@ -169,6 +171,7 @@ def extract_feature(path):
         frame_std.at[id] = np.std(frames_to_time)
         frame_var.at[id] = np.var(frames_to_time)
         
+        # print(songname)
         id = id+1
     
     # Concatenating Features into one csv and json format
@@ -229,48 +232,107 @@ def extract_feature(path):
     feature_set['frame_var'] = frame_var
 
     # Converting Dataframe into CSV Excel and JSON file
+    game = path.split("rawscripts/")[-1].split("/")[0]
+    print("game",game)
+    feature_set.to_csv('../bgm_feature/bgmfeature_{}.csv'.format(game))
+    feature_set.to_json('../bgm_feature/bgmfeature_{}.json'.format(game))
+    # feature_set.to_csv('./test_bgm2/bgmfeature.csv')
+    # feature_set.to_json('./test_bgm2/bgmfeature.json')
 
-    feature_set.to_csv('./test_bgm/bgmfeature_test.csv')
-    feature_set.to_json('./test_bgm/bgmfeature_test.json')
+def normalizeTest():
+    base_path = "/Users/kanoryu/Google ドライブ/codes/Serif/SerifDataCleaner/src_bgm/bgm_feature/bgmfeature_norm.csv"
+    test_path = "./test_bgm1/bgmfeature.csv"
 
-def getNormBase():
-    base_path = "./bgm_feature/bgmfeature_concat.csv"
     df_base = pandas.read_csv(base_path)
-
-    col_list = list(df_base.columns)[3:]
-    print('col_list',col_list)
-    from scipy import stats
-    # df_base[col_list]=(df_base[col_list]-df_base[col_list].mean())/df_base[col_list].std()
-    mean_list = df_base[col_list].mean()
-    std_list  = df_base[col_list].std()
-    df_new = pandas.DataFrame({},columns=col_list)
-    df_new.loc["mean"]= mean_list
-    df_new.loc["std"] = std_list
-    print(df_new)
-    df_new.to_csv("./bgm_feature/bgmfeature_norm.csv")
-
-def normalizeFeature():
-    base_path = "./bgm_feature/bgmfeature_norm.csv"
-    test_path = "./test_bgm/bgmfeature_test.csv"
-
-    df_base = pandas.read_csv(base_path,index_col=0)
-    print(df_base.columns)
-    mean_list = df_base.loc["mean"]#[2:]
-    std_list = df_base.loc["std"]#[2:]
+    # print(df_base.columns)
+    mean_ind = list(df_base.index)[-2]
+    std_ind = list(df_base.index)[-1]
+    # print(list(df_base['Unnamed: 0']))
+    # for ri,row in df_base.iterrows():
+    #     print(ri)
+    mean_list = df_base.loc[mean_ind][2:]
+    std_list = df_base.loc[std_ind][2:]
+    # mean_list  = df_base[df_base['Unnamed: 0']=="14"][2:]
+    # mean_list  = df_base[df_base['Unnamed: 0']=="mean"][2:]
+    # std_list  = df_base[df_base['Unnamed: 0']=="std"][2:]
+    # std_list  = df_base[df_base['Unnamed: 0']=="13"][2:]
 
     df_test = pandas.read_csv(test_path)
-    col_list = list(df_base.columns)
-    print("col_list",col_list)
+    col_list = list(df_base.columns)[2:]
+    # print("col_list",col_list)
+    # print(df_base[col_list].mean())
+    # print("mean_list",mean_list)
+    # print("std_list",std_list)
     df_std = (df_test[col_list] - mean_list) / std_list
+    # songname_row = [title+"/"+songname for title,songname in zip(title_row,df_concat["song_name"])]
 
     df_std["songname"] = df_test["song_name"]
+    # print("df_std",df_std)
+
 
     df_std = df_std[["songname"]+col_list]
     df_std.to_csv(test_path.replace(".csv","_norm.csv"))
 
+def normalizeConcat():
+    inre_softs = ['bokukimi', 'chusingura', 'chusingura_fd', 'miburo']
+    parasol_softs = ["delivara","majicara",'haruno', 'kanoren', 'koiimo', 'qsplash', 'sakura', 'yumekoi']
+    uguisu_softs = ["kaminoue","suisoginka"]
+    alcot_softs = ["onigokko","onigokko_fd"]
+    honeycomb_softs=["1_2summer","kicking_horse","fair_child","natsupochi","daitouryou","daitouryou_fd","realimouto"]
+    akabee_softs = ["konboku","sono_yokogao","okibaganai","yayaokibaganai","lavender"]
+    softs_list = inre_softs+parasol_softs+uguisu_softs+alcot_softs+honeycomb_softs+akabee_softs
+
+    bgm_file_list=['../bgm_feature/bgmfeature_{}.csv'.format(title) for title in softs_list]
+    df_list=[pandas.read_csv(bgm_file) for bgm_file in bgm_file_list]
+    col_list_list = [df.columns for df in df_list]
+    for col_list in col_list_list:
+        print(len(col_list))
+    title_row=[title for title,df in zip(softs_list,df_list) for _ in range(len(df))]
+    df_concat=pandas.concat(df_list)
+    df_concat.to_csv("../bgm_feature/bgmfeature_concat.csv")
+    col_list = list(df_concat.columns)[2:]
+    print('col_list',col_list)
+    from scipy import stats
+    df_concat[col_list]=(df_concat[col_list]-df_concat[col_list].mean())/df_concat[col_list].std()
+    # df_concat[col_list]=df_concat[col_list].apply(stats.zscore, axis=0)
+    songname_row = [title+"/"+songname for title,songname in zip(title_row,df_concat["song_name"])]
+    # df_std["songname"] = songname_row
+    df_concat["songname"] = songname_row
+    # prt("df_std",df_std)
+
+
+    # df_std = df_std[["songname"]+col_list]
+    df_concat = df_concat[["songname"]+col_list]
+    # df_std.to_csv(test_path.replace(".csv","_norm.csv"))
+    df_concat.to_csv("../bgm_feature/bgmfeature_norm.csv")
+
 # Extracting Feature Function Call
 if __name__=="__main__":
-    path_list = ["./test_bgm/"]
-    [extract_feature(p_e) for p_e in path_list]
-    normalizeFeature()
-    # getNormBase()
+    # extract_feature('Dataset/')
+
+    path = '/Users/kanoryu/IdeaProjects/Corpus/NovelGame/rawscripts/'
+    # inre_softs = ['bokukimi', 'chusingura', 'chusingura_fd']#, 'miburo']
+    inre_softs = ['miburo']
+    # parasol_softs = ['haruno', 'kanoren', 'koiimo', 'qsplash', 'sakura', 'yumekoi']
+    # path_list = [path+inre+"/bgm/" for inre in inre_softs]
+    # uguisu_softs = ["suisoginka","kaminoue"]
+    # path_list= [path+ugs+"/bgm/" for ugs in uguisu_softs]
+
+    # alcot_softs = ["onigokko","onigokko_fd","fair_child","natsupochi","daitouryou","realimouto"]
+    alcot_softs = ["1_2summer"]#"daitouryou_fd","shunki_gentei","1_2summer"]
+    akabee_softs = ["sono_yokogao"]#"lavender","konboku"]#""okibaganai", "yayaokibaganai"]
+    path_list= [path+alcot+"/bgm/" for alcot in akabee_softs]
+    # [extract_feature(p_e) for p_e in path_list]
+
+    # honeycomb_softs = ["kicking_horse", "1_2summer"]
+    # path_list= [path+alcot+"/data/bgm/" for alcot in honeycomb_softs]
+    # [extract_feature(p_e) for p_e in path_list]
+
+    # path_list = ["./test_bgm1/"]
+
+    # parasol_softs = ["delivara", "majicara"]
+    # path_list += [path + prsl + "/media/bgm/" for prsl in parasol_softs]
+    # [extract_feature(p_e) for p_e in path_list]
+
+    # normalizeTest()
+    normalizeConcat()
