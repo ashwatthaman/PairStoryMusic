@@ -13,3 +13,19 @@ sampleSiamLSTM.py -i {#入力テキストファイル} で入力テキストを�
 * pandas==0.18.1
 * chainer==4.2.0
 * librosa==0.6.2
+
+## Automatically Assigning Appropriate Music for Novels.
+
+The implementation of the model explained in this article.(https://medium.com/@apictureofthefuture/automatically-assigning-music-suitable-for-a-novel-7ee477b7001c)
+
+run bgm_feature_extraction.py and you can extract features from music files in the directory "text_bgm".
+
+run sampleSiamLSTM.py -i {#input text_file} and segment texts into words(need to install MeCab), and the model computes compatibility of music and texts (10 sequential sentences).
+
+the results will be written in test_bgm/test_result.csv
+
+you need to install the library below to run the codes (I confirmed it works on the written version).
+
+* pandas==0.18.1
+* chainer==4.2.0
+* librosa==0.6.2
