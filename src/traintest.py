@@ -1,13 +1,13 @@
 
 import codecs,sys,json,csv
 import numpy as np
-import cupy
+# import cupy
 
 from chainer import serializers,optimizers
 from chainer import functions as F
 import chainer
 
-from evaluation import evalDiscrete,evalRank,evalRouge
+from evaluation import evalDiscrete
 import os,math
 CDIR=os.path.abspath(__file__)
 CDIR=CDIR.replace(CDIR.split("/")[-1],"")
@@ -20,35 +20,6 @@ except NameError:
         def inner(*args, **kwargs):
             return func(*args, **kwargs)
         return inner
-
-
-def train(args,model):
-    model.loadModel(args)
-    if args.gpu >= 0:
-        model.to_gpu()#args.gpu)
-
-    optimizer = optimizers.Adam()
-    optimizer.setup(model)
-    optimizer.add_hook(chainer.optimizer.GradientClipping(5.0))
-    for e_i in range(model.epoch_now, args.epoch):
-        model.setEpochNow(e_i)
-        loss_sum_ae = 0
-        loss_sum_bt = 0
-
-        for tupl in model.getBatchGen():
-            loss = model(tupl)
-            loss_sum_ae += loss.data
-            model.cleargrads();loss.backward();optimizer.update()
-
-            # if e_i>-1:
-            #     loss = model.callBackTranslate(tupl)
-            #     loss_sum_bt += loss.data
-            #     model.cleargrads();loss.backward();optimizer.update()
-
-        print("epoch:{}, loss_ae:{}, loss_bt:{}".format(e_i, loss_sum_ae, loss_sum_bt))
-        serializers.save_npz(args.model_name.format(model.epoch_now) + '.npz', model)
-        # model_name = model_name_base.format(args.dataname, e_i)
-        # serializers.save_npz(model_name, model)
 
 @profile
 def train_dev_test(args,model,x_train,y_train,x_dev,y_dev,x_test,y_test):
@@ -87,11 +58,11 @@ def train_dev_test(args,model,x_train,y_train,x_dev,y_dev,x_test,y_test):
         model.setData(x_train,y_train)
         loss_sum = 0
         for tupl in model.getBatchGen():
-            try:
-                loss = model(tupl)
-            except cupy.cuda.memory.OutOfMemoryError:
-                print('outMemory')
-                loss = model(tupl[:len(tupl)//2])
+            # try:
+            loss = model(tupl)
+            # except cupy.cuda.memory.OutOfMemoryError:
+            #     print('outMemory')
+            #     loss = model(tupl[:len(tupl)//2])
             assert not math.isnan(loss.data)
             loss_sum += loss.data
             assert not math.isnan(loss_sum)
@@ -133,7 +104,6 @@ def train_dev_test(args,model,x_train,y_train,x_dev,y_dev,x_test,y_test):
     eval_dev_max=0.0;eval_test=0.0
     for e_i in range(model.epoch_now, args.epoch):
         model.setEpochNow(e_i)
-        # eval_dev_max,es_now=iter_train_dev_test(model,optimizer,args,x_train,y_train,x_dev,y_dev,x_test,y_test,iter_unit=3*64000,es_now=es_now,eval_dev_max=eval_dev_max,early_stop=early_stop)
         eval_dev_max,es_now=iter_train_dev_test(model,optimizer,args,x_train,y_train,x_dev,y_dev,x_test,y_test,iter_unit=3*64000,es_now=es_now,eval_dev_max=eval_dev_max,early_stop=early_stop)
         if es_now > early_stop:
             print('earlyStopped')

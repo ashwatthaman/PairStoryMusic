@@ -1,5 +1,5 @@
 import pandas,os,codecs,subprocess
-from util.vocabulary import vocabularize
+from util.vocabulary import vocabularize,Vocabulary
 
 bgm_feature_dim=54
 text_split_unit=10
@@ -10,6 +10,10 @@ def loadSiamTest():
     bgmfeature_dict = {row[1].replace(".ogg",""):list(row[2:]) for ri,row in df_bgm.iterrows()}
     return bgmfeature_dict
 
+def loadVocab(args):
+    vocab_dir = args.model_dir+"/"+args.dataname+"/vocab_{}.bin".format(args.n_vocab)
+    vocab = Vocabulary.load(vocab_dir)
+    return vocab
 
 def loadTest(txtfile,vocab):
     serif_delim = "「"
