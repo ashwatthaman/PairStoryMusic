@@ -21,15 +21,14 @@ except NameError:
         return inner
 
 class WordEmbeddings(Chain):
-    # def __init__(self,n_vocab,n_embed):
-    # self.setArgs(n_vocab,n_embed)
-    def __init__(self,vocab,n_embed):
-        self.setArgs(vocab,n_embed)
+    def __init__(self,vocab,n_embed,make_xp_func):
+        self.setArgs(vocab,n_embed,make_xp_func)
         super(WordEmbeddings,self).__init__(
             embed=L.EmbedID(self.n_vocab, self.n_embed),
         )
 
-    def setArgs(self,vocab,n_embed):
+    def setArgs(self,vocab,n_embed,make_xp_func):
+        self.make_xp_func = make_xp_func
         self.vocab   = vocab
         self.n_vocab = len(vocab)
         self.n_embed = n_embed

@@ -22,6 +22,9 @@ def extract_feature(path):
 
     # Individual Feature Vectors
     songname_vector = pd.Series()
+    offset_vector = pd.Series()
+    duration_vector = pd.Series()
+
     tempo_vector = pd.Series()
     total_beats = pd.Series()
     average_beats = pd.Series()
@@ -86,8 +89,11 @@ def extract_feature(path):
 
         # Reading Song
         songname = path + line
+        duration = librosa.get_duration(filename=songname)
+        offset_time=0
+
         print("song_name:", songname)
-        y, sr = librosa.load(songname, duration=60)
+        y, sr = librosa.load(songname, duration=30)
         S = np.abs(librosa.stft(y))
 
         # Extracting Features
@@ -116,6 +122,9 @@ def extract_feature(path):
         # Transforming Features
         # songname_vector.set_value(id, line)  # song name
         songname_vector.at[id] = line
+        offset_vector.at[id] = offset_time
+        duration_vector.at[id] = duration
+
         tempo_vector.at[id] = tempo  # tempo
         total_beats.at[id] = sum(beats)  # beats
         average_beats.at[id] = np.average(beats)
@@ -175,6 +184,8 @@ def extract_feature(path):
 
     # Concatenating Features into one csv and json format
     feature_set['song_name'] = songname_vector  # song name
+    feature_set["offset"] = offset_vector
+    feature_set["duration"] = duration
     feature_set['tempo'] = tempo_vector  # tempo
     feature_set['total_beats'] = total_beats  # beats
     feature_set['average_beats'] = average_beats
@@ -239,17 +250,12 @@ def extract_feature(path):
 def getNormBase():
     base_path = "../bgm_feature/bgmfeature_concat.csv"
     df_base = pandas.read_csv(base_path)
-
-    col_list = list(df_base.columns)[3:]
-    print('col_list', col_list)
-    from scipy import stats
-    # df_base[col_list]=(df_base[col_list]-df_base[col_list].mean())/df_base[col_list].std()
-    mean_list = df_base[col_list].mean()
-    std_list = df_base[col_list].std()
-    df_new = pandas.DataFrame({}, columns=col_list)
+    featurecol_list = list(df_base.columns)[4:]
+    mean_list = df_base[featurecol_list].mean()
+    std_list = df_base[featurecol_list].std()
+    df_new = pandas.DataFrame({}, columns=featurecol_list)
     df_new.loc["mean"] = mean_list
     df_new.loc["std"] = std_list
-    print(df_new)
     df_new.to_csv("../bgm_feature/bgmfeature_norm.csv")
 
 
@@ -258,24 +264,25 @@ def normalizeFeature():
     test_path = "../test_bgm/bgmfeature_test.csv"
 
     df_base = pandas.read_csv(base_path, index_col=0)
-    print(df_base.columns)
     mean_list = df_base.loc["mean"]  # [2:]
     std_list = df_base.loc["std"]  # [2:]
 
     df_test = pandas.read_csv(test_path)
     col_list = list(df_base.columns)
-    print("col_list", col_list)
     df_std = (df_test[col_list] - mean_list) / std_list
 
     df_std["songname"] = df_test["song_name"]
+    df_std["offset"] = df_test["offset"]
+    df_std["duration"] = df_test["duration"]
 
-    df_std = df_std[["songname"] + col_list]
+    df_std = df_std[["songname","offset","duration"] + col_list]
     df_std.to_csv(test_path.replace(".csv", "_norm.csv"))
 
 
-# Extracting Feature Function Call
+
 if __name__ == "__main__":
     getNormBase()
     path_list = ["../test_bgm/"]
     [extract_feature(p_e) for p_e in path_list]
     normalizeFeature()
+    print("bgm_feature_extracted")
